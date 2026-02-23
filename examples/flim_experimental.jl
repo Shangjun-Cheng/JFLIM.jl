@@ -1,3 +1,6 @@
+import Pkg
+Pkg.activate(raw"D:\JuliaProgramm\JFLIM")
+Pkg.instantiate()
 # using DelimitedFiles
 using JFLIM
 using View5D
