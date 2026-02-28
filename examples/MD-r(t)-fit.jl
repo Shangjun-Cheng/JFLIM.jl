@@ -9,40 +9,37 @@ using View5D
 function main()
     # helper: scalar/array -> Vector{Float32}
     asvec(x) = x isa AbstractArray ? vec(Float32.(collect(x))) : Float32[x]
-
+    csv_path = raw"D:\CodeFromCheng\MDSimu\Dataset\mean_r_curve.csv" # 或 mean_P_curve.csv 
+    df = CSV.read(csv_path, DataFrame) 
+    y = Float32.(df[!, "decay"]) 
+    T = length(y)
     # =========================
     # 1) load CSV (NO zero truncation)
     # =========================
-    csv_path = raw"C:\Users\CHENG\Desktop\PaperSingleFiber\ref\5_decays_anisotropy.csv"
-    df = CSV.read(csv_path, DataFrame)
 
-    y1 = Float32.(df[!, "ch1_decay"])
-    y2 = Float32.(df[!, "ch2_decay"])
-
-    T = min(length(y1), length(y2))
-    y1 = y1[1:T]
-    y2 = y2[1:T]
-
-    # =========================
-    # choose fit window (manual)
-    # =========================
-    t_start = 391          # inclusive, 0-based index
-    t_end   = 796          # inclusive, 0-based index
+    
+    t_start = 0          # inclusive, 0-based index
+    t_end   = 100      # inclusive, 0-based index
     @assert 0 ≤ t_start ≤ t_end < T
 
-    idx = (t_start+1):(t_end+1)   # Julia is 1-based
-    Tfit = length(idx)
+    # Julia is 1-based
+    start1 = t_start + 1
+    end1   = t_end + 1
 
-    # build to_fit using only the window
-    # =========================
-    # 2) put "two channels" into X dimension
-    # data layout: (X, Y, Z, T, C) = (2, 1, 1, T, 1)
-    # =========================
-    to_fit = Array{Float32}(undef, 2, 1, 1, Tfit)
-    to_fit[1,1,1,:] = y1[idx]
-    to_fit[2,1,1,:] = y2[idx]
+    # 每隔 step 个点取样一次（在窗口 [start1, end1] 内）
+    step = 1
+    @assert step ≥ 1
 
-    @show size(to_fit), maximum(y1), maximum(y2)
+    idx_ds = start1:step:end1
+    y_ds   = y[idx_ds]
+
+    # Tfit = length(y_ds)
+    Tfit = length(y)
+    to_fit = Array{Float32}(undef, 1, 1, 1, Tfit)
+    # to_fit[1,1,1,:] = y_ds   
+    to_fit[1,1,1,:] = y   
+
+    @show size(to_fit)
 
     # =========================
     # 3) fit settings
