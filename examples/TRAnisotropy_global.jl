@@ -65,6 +65,32 @@ function main()
     τs = res2[:τs] 
     res2.offset
 
+    # @vt to_fit fwd2
+
+
+    # =========================
+    # 4) plot: data (to_fit) vs fit (fwd2)
+    # =========================
+    t = collect(0:(Tfit-1))  # bin index; if you have dt, multiply here
+
+    # robust extract as 1D vectors
+    data_ch1 = vec(to_fit[1,1,1,:])
+    data_ch2 = vec(to_fit[2,1,1,:])
+
+    fit_ch1  = ndims(fwd2) == 5 ? vec(fwd2[1,1,1,:,1]) : vec(fwd2[1,1,1,:])
+    fit_ch2  = ndims(fwd2) == 5 ? vec(fwd2[2,1,1,:,1]) : vec(fwd2[2,1,1,:])
+
+    p1 = plot(t, data_ch1; label="to_fit ch1", xlabel="time bin", ylabel="counts", title="Channel 1")
+    plot!(p1, t, fit_ch1; label="fwd2 ch1")
+
+    p2 = plot(t, data_ch2; label="to_fit ch2", xlabel="time bin", ylabel="counts", title="Channel 2")
+    plot!(p2, t, fit_ch2; label="fwd2 ch2")
+
+    p = plot(p1, p2; layout=(2,1), size=(900,700))
+    display(p)
+
+    # optional: save
+    # savefig(p, "to_fit_vs_fwd2.png")
     
 end
 

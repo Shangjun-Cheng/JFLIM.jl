@@ -8,7 +8,7 @@ using Plots
 using View5D
 function main()
     # helper: scalar/array -> Vector{Float32}
-    asvec(x) = x isa AbstractArray ? vec(Float32.(collect(x))) : Float32[x]
+    # asvec(x) = x isa AbstractArray ? vec(Float32.(collect(x))) : Float32[x]
     csv_path = raw"D:\CodeFromCheng\MDSimu\Dataset\mean_r_curve.csv" # 或 mean_P_curve.csv 
     df = CSV.read(csv_path, DataFrame) 
     y = Float32.(df[!, "decay"]) 
@@ -34,8 +34,8 @@ function main()
     y_ds   = y[idx_ds]
 
     # Tfit = length(y_ds)
-    Tfit = length(y)
-    to_fit = Array{Float32}(undef, 1, 1, 1, Tfit)
+
+    to_fit = Array{Float32}(undef, 1, 1, 1, T)
     # to_fit[1,1,1,:] = y_ds   
     to_fit[1,1,1,:] = y   
 
