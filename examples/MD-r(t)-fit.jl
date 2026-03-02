@@ -8,38 +8,33 @@ using Plots
 using View5D
 function main()
     # helper: scalar/array -> Vector{Float32}
-    # asvec(x) = x isa AbstractArray ? vec(Float32.(collect(x))) : Float32[x]
-    csv_path = raw"D:\CodeFromCheng\MDSimu\Dataset\mean_r_curve.csv" # 或 mean_P_curve.csv 
+    asvec(x) = x isa AbstractArray ? vec(Float32.(collect(x))) : Float32[x]
+    # csv_path = raw"D:\CodeFromCheng\MDSimu\Dataset\mean_r_curve.csv" 
+    csv_path = raw"D:\JuliaProgramm\JFLIM\examples\data\mean_r_curve.csv"
     df = CSV.read(csv_path, DataFrame) 
     y = Float32.(df[!, "decay"]) 
     T = length(y)
     # =========================
-    # 1) load CSV (NO zero truncation)
+    # 1) load CSV (single curve, no truncation)
     # =========================
+    y = Float32.(df[!, "decay"])
+    T = length(y)
 
-    
+    # Fit window (manual, 0-based indices)
     t_start = 0          # inclusive, 0-based index
-    t_end   = 100      # inclusive, 0-based index
-    @assert 0 ≤ t_start ≤ t_end < T
+    t_end   = 1000          # inclusive, 0-based index
+    @assert 1 ≤ t_start+1 ≤ t_end +1≤ T
+    idx = (t_start+1):(t_end+1)   # Julia is 1-based
+    Tfit = length(idx)
+    # build to_fit using only the window
+    # =========================
+    # 2) pack the single curve into JFLIM layout
+    # data layout: (X, Y, Z, T, C) = (1, 1, 1, T, 1)
+    # =========================
+    to_fit = Array{Float32}(undef, 1, 1, 1, Tfit)
+    to_fit[1,1,1,:] = y[idx]
 
-    # Julia is 1-based
-    start1 = t_start + 1
-    end1   = t_end + 1
-
-    # 每隔 step 个点取样一次（在窗口 [start1, end1] 内）
-    step = 1
-    @assert step ≥ 1
-
-    idx_ds = start1:step:end1
-    y_ds   = y[idx_ds]
-
-    # Tfit = length(y_ds)
-
-    to_fit = Array{Float32}(undef, 1, 1, 1, T)
-    # to_fit[1,1,1,:] = y_ds   
-    to_fit[1,1,1,:] = y   
-
-    @show size(to_fit)
+    @show size(to_fit), maximum(y)
 
     # =========================
     # 3) fit settings
