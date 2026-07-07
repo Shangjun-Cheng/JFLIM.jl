@@ -13,9 +13,7 @@ function main()
     # =========================
     # 1) load CSV (NO zero truncation)
     # =========================
-    # csv_path = raw"C:\Users\CHENG\Desktop\PaperSingleFiber\ref\5_decays_anisotropy.csv"
-    csv_path = raw"D:\JuliaProgramm\JFLIM\examples\data\5_decays_anisotropy.csv"
-
+    csv_path = raw"C:\Users\CHENG\Desktop\PaperSingleFiber\ref\5_decays_anisotropy.csv"
     df = CSV.read(csv_path, DataFrame)
 
     y1 = Float32.(df[!, "ch1_decay"])
@@ -28,14 +26,11 @@ function main()
     # =========================
     # choose fit window (manual)
     # =========================
-    t_start = 0          # inclusive, 0-based index
-    t_end   = 1023          # inclusive, 0-based index
+    t_start = 391          # inclusive, 0-based index
+    t_end   = 796          # inclusive, 0-based index
+    @assert 0 ≤ t_start ≤ t_end < T
 
-    t_start = 392          # inclusive, 0-based index
-    t_end   = 797          # inclusive, 0-based index
-    @assert 1 ≤ t_start ≤ t_end ≤ T
-
-    idx = (t_start):(t_end)   # Julia is 1-based
+    idx = (t_start+1):(t_end+1)   # Julia is 1-based
     Tfit = length(idx)
 
     # build to_fit using only the window
@@ -68,7 +63,7 @@ function main()
 
     amps = res2[:amps]
     τs = res2[:τs] 
-    offset = res2.offset
+    res2.offset
 
     # @vt to_fit fwd2
 
