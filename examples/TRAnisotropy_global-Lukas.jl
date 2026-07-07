@@ -56,8 +56,12 @@ function main()
     # =========================
     # choose fit window (manual)
     # =========================
-    t_start = 391          # inclusive, 0-based index
-    t_end   = 796          # inclusive, 0-based index
+    # t_start = 391          # inclusive, 0-based index
+    # t_end   = 796          # inclusive, 0-based index
+    # @assert 0 ≤ t_start ≤ t_end < T
+
+    t_start = 220          # inclusive, 0-based index
+    t_end   = 1100          # inclusive, 0-based index
     @assert 0 ≤ t_start ≤ t_end < T
 
     idx = (t_start+1):(t_end+1)   # Julia is 1-based
@@ -93,7 +97,54 @@ function main()
 
     amps = res2[:amps]
     τs = res2[:τs] 
-    res2.offset
+    offset = res2[:offset]
+
+    println("\n========== Fit parameters ==========")
+    println("Final fit result object: res2")
+    println("Second-stage initial values: all_start = res")
+    println("Fit settings: fixed_tau = false, global_tau = true, fixed_offset = false, amp_positive = ", amp_positive)
+
+    println("-- amplitudes --")
+    println("size(res2[:amps]) = ", size(res2[:amps]))
+    println("Main amplitude results use channel 2: res2[:amps][:, 1, 1, 1, 2]")
+    println("A_tau1_ch2: initial value = ", res[:amps][1, 1, 1, 1, 2],
+            ", lower bound = ", amp_positive ? 0 : "-Inf",
+            ", upper bound = Inf, fitted value = ", res2[:amps][1, 1, 1, 1, 2])
+    println("A_tau2_ch2: initial value = ", res[:amps][2, 1, 1, 1, 2],
+            ", lower bound = ", amp_positive ? 0 : "-Inf",
+            ", upper bound = Inf, fitted value = ", res2[:amps][2, 1, 1, 1, 2])
+
+    initial_taus = asvec(res[:τs])
+    fitted_taus = asvec(res2[:τs])
+    println("-- lifetimes --")
+    for i in eachindex(fitted_taus)
+        init_value = i <= length(initial_taus) ? initial_taus[i] : missing
+        println("lifetime_tau[$i]: initial value = ", init_value,
+                ", lower bound = 0, upper bound = Inf, fitted value = ", fitted_taus[i])
+    end
+
+    initial_offsets = asvec(res[:offset])
+    fitted_offsets = asvec(res2[:offset])
+    println("-- background / offset --")
+    for i in eachindex(fitted_offsets)
+        init_value = i <= length(initial_offsets) ? initial_offsets[i] : missing
+        println("background_offset[$i]: initial value = ", init_value,
+                ", lower bound = 0, upper bound = Inf, fitted value = ", fitted_offsets[i])
+    end
+
+    if haskey(res2, :t0)
+        initial_t0 = haskey(res, :t0) ? asvec(res.t0) : Float32[]
+        fitted_t0 = asvec(res2.t0)
+        println("-- IRF shift / t0 --")
+        for i in eachindex(fitted_t0)
+            init_value = i <= length(initial_t0) ? initial_t0[i] : missing
+            println("irf_shift_t0[$i]: initial value = ", init_value,
+                    ", lower bound = not specified, upper bound = not specified, fitted value = ", fitted_t0[i])
+        end
+    end
+
+    println("Residual / chi-square / AIC / BIC / optimizer convergence: not stored in res2 by flim_fit.")
+    println("====================================\n")
 
     # @vt to_fit fwd2
 
