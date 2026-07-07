@@ -4,24 +4,54 @@ Pkg.instantiate()
 
 using JFLIM
 using CSV, DataFrames
+using NDTools: reorient
 using Plots
 using View5D
+
+function load_lukas_csv_decays(csv_path, parallel_column, perpendicular_column)
+    isfile(csv_path) || error("CSV file not found: $csv_path")
+
+    df = CSV.read(csv_path, DataFrame)
+    column_names = Symbol.(names(df))
+    required_columns = [parallel_column, perpendicular_column]
+    missing_columns = setdiff(required_columns, column_names)
+    isempty(missing_columns) || error("CSV is missing required column(s): $(join(string.(missing_columns), ", "))")
+
+    parallel_decay_sum = vec(Float32.(df[!, parallel_column]))
+    perpendicular_decay_sum = vec(Float32.(df[!, perpendicular_column]))
+
+    println("csv file path: ", csv_path)
+    println("parallel channel column: ", parallel_column)
+    println("perpendicular channel column: ", perpendicular_column)
+    println("size of parallel decay: ", size(parallel_decay_sum))
+    println("size of perpendicular decay: ", size(perpendicular_decay_sum))
+
+    length(parallel_decay_sum) == length(perpendicular_decay_sum) ||
+        error("parallel/perpendicular decay lengths differ: $(length(parallel_decay_sum)) vs $(length(perpendicular_decay_sum))")
+
+    return parallel_decay_sum, perpendicular_decay_sum
+end
+
 function main()
     # helper: scalar/array -> Vector{Float32}
     asvec(x) = x isa AbstractArray ? vec(Float32.(collect(x))) : Float32[x]
 
     # =========================
-    # 1) load CSV (NO zero truncation)
+    # 1) load new Lukas summed DY490 csv data (NO zero truncation)
     # =========================
-    csv_path = raw"C:\Users\CHENG\Desktop\PaperSingleFiber\ref\5_decays_anisotropy.csv"
-    df = CSV.read(csv_path, DataFrame)
+    # New Lukas summed DY490 dataset
+    csv_path = raw"D:\JuliaProgramm\JFLIM\examples\data\DY490-full-sum.csv"
 
-    y1 = Float32.(df[!, "ch1_decay"])
-    y2 = Float32.(df[!, "ch2_decay"])
+    # CSV columns:
+    # parallel_decay_sum: summed parallel decay channel
+    # perpendicular_decay_sum: summed perpendicular decay channel
+    parallel_column = :parallel_decay_sum
+    perpendicular_column = :perpendicular_decay_sum
 
-    T = min(length(y1), length(y2))
-    y1 = y1[1:T]
-    y2 = y2[1:T]
+    y1, y2 = load_lukas_csv_decays(csv_path, parallel_column, perpendicular_column)
+
+    @assert length(y1) == length(y2)
+    T = length(y1)
 
     # =========================
     # choose fit window (manual)
@@ -52,7 +82,7 @@ function main()
     # first fit with fixed taus and gaussian noise
     res, fwd = flim_fit(to_fit, ScaleMaximum(); use_cuda = use_cuda, verbose=true, stat=loss_gaussian, iterations=30, num_exponents=2,
                         fixed_tau=true, global_tau=true, amp_positive=amp_positive,
-                        # tau_start=reorient([10f0, 20f0], Val(5)),
+                        tau_start=reorient([10f0, 20f0], Val(5)),
                         off_start=0.0001f0, bgnoise=1f0);
     res[:τs] 
 
