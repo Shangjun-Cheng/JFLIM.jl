@@ -39,9 +39,11 @@ function main()
 
     # CSV column:
     # parallel_decay_sum: summed decay channel used for the fit
-    parallel_column = :parallel_decay_sum
+    parallel_column = :parallel_raw_sum
+    perpendicular_column = :perpendicular_raw_sum
 
     y1 = load_lukas_csv_decays(csv_path, parallel_column)
+    # y1 = load_lukas_csv_decays(csv_path, perpendicular_column)
 
     T = length(y1)
 
@@ -58,7 +60,7 @@ function main()
     # t_end   = 796          # inclusive, 0-based index
     # @assert 0 ≤ t_start ≤ t_end < T
 
-    t_start = 220          # inclusive, 0-based index
+    t_start = 1          # inclusive, 0-based index
     t_end   = 1100          # inclusive, 0-based index
     @assert 0 ≤ t_start ≤ t_end < T
 
